@@ -1,0 +1,54 @@
+version: '3.3'
+
+networks:
+  default:
+    external:
+      name: traefik
+
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: always
+    command:
+      # Log level
+      - "--log.level=INFO"
+      # Enable dashboard
+      - "--api.dashboard=true"
+      # Entry points
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Providers
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      # Certificates
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=${EMAIL_ADDRESS}"
+      - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
+      # Certificates testing.
+      # - "--certificatesresolvers.myhttpchallenge.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+    labels:
+      # Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Traefik
+      - "traefik.enable=true"
+      # Dashboard
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.rule=Host(`${HOST}`)"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=sam:$$apr1$$vz7sl6jy$$A427TZYnUgiHUhbm8Y37e0"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=websecure"
+      - "traefik.http.routers.traefik-secure.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${LOCAL_CONF_DIR}/acme.json:/letsencrypt/acme.json
+      - ${LOCAL_DATA_DIR}/tmp:/tmp

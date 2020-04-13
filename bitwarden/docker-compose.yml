@@ -1,0 +1,62 @@
+version: '3.3'
+
+services:
+  bitwarden:
+    restart: always
+    image: bitwardenrs/server:latest
+    container_name: bitwarden
+    volumes:
+      - ${LOCAL_DATA_DIR}:/data
+    environment:
+      WEBSOCKET_ENABLED: 'true' # Required to use websockets
+      SIGNUPS_ALLOWED: 'false' # set to false to disable signups
+    labels:
+      # Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Traefik
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.middlewares.redirect-https.redirectScheme.scheme=https"
+      - "traefik.http.middlewares.redirect-https.redirectScheme.permanent=true"
+      - "traefik.http.routers.bitwarden-ui-https.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.bitwarden-ui-https.entrypoints=websecure"
+      - "traefik.http.routers.bitwarden-ui-https.tls=true"
+      - "traefik.http.routers.bitwarden-ui-https.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.bitwarden-ui-https.service=bitwarden-ui"
+      - "traefik.http.routers.bitwarden-ui-http.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.bitwarden-ui-http.entrypoints=web"
+      - "traefik.http.routers.bitwarden-ui-http.middlewares=redirect-https"
+      - "traefik.http.routers.bitwarden-ui-http.service=bitwarden-ui"
+      - "traefik.http.services.bitwarden-ui.loadbalancer.server.port=80"
+      - "traefik.http.routers.bitwarden-websocket-https.rule=Host(`${HOST}`) && Path(`/notifications/hub`)"
+      - "traefik.http.routers.bitwarden-websocket-https.entrypoints=websecure"
+      - "traefik.http.routers.bitwarden-websocket-https.tls=true"
+      - "traefik.http.routers.bitwarden-websocket-https.service=bitwarden-websocket"
+      - "traefik.http.routers.bitwarden-websocket-http.rule=Host(`${HOST}`) && Path(`/notifications/hub`)"
+      - "traefik.http.routers.bitwarden-websocket-http.entrypoints=web"
+      - "traefik.http.routers.bitwarden-websocket-http.middlewares=redirect-https"
+      - "traefik.http.routers.bitwarden-websocket-http.service=bitwarden-websocket"
+      - "traefik.http.services.bitwarden-websocket.loadbalancer.server.port=3012"
+
+  bitwarden-backup:
+    depends_on:
+      - bitwarden
+    build:
+      context: ./backup
+      dockerfile: Dockerfile
+      args:
+        GOOGLE_SERVICE_ACCOUNT_JSON: ${GOOGLE_SERVICE_ACCOUNT_JSON}
+    image: bitwarden-backup:latest
+    container_name: bitwarden-backup
+    restart: always
+    volumes:
+      - ${LOCAL_DATA_DIR}/db.sqlite3:/bitwarden/db.sqlite3
+    environment:
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${GOOGLE_SERVICE_ACCOUNT_JSON}
+      TZ: "Europe/Zurich"
+
+networks:
+  default:
+    external:
+      name: traefik

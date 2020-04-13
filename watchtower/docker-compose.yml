@@ -1,0 +1,20 @@
+version: '3.3'
+
+services:
+  watchtower:
+    command: --label-enable --cleanup --schedule "${SCHEDULE}"
+    image: containrrr/watchtower
+    container_name: watchtower
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    network_mode: none
+    restart: always
+    environment:
+      TZ: "Europe/Zurich"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  default:
+    external:
+      name: traefik

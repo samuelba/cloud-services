@@ -1,0 +1,71 @@
+version: '3.3'
+
+services:
+  nextcloud-mariadb:
+    image: mariadb:latest
+    container_name: nextcloud-mariadb
+    restart: always
+    environment:
+       MYSQL_DATABASE: ${MYSQL_DATABASE}
+       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+       MYSQL_USER: ${MYSQL_USER}
+       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    ports:
+      - 3306:3306
+    volumes:
+      - ${LOCAL_MARIADB_DIR}:/var/lib/mysql
+
+  nextcloud-redis:
+    image: redis:latest
+    container_name: nextcloud-redis
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - ${LOCAL_REDIS_DIR}:/data
+
+  nextcloud:
+    depends_on:
+      - nextcloud-mariadb
+      - nextcloud-redis
+    image: nextcloud:latest
+    container_name: nextcloud
+    restart: unless-stopped
+    environment:
+       MYSQL_HOST: ${MYSQL_HOST}
+       MYSQL_DATABASE: ${MYSQL_DATABASE}
+       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+       MYSQL_USER: ${MYSQL_USER}
+       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+       TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+    labels:
+      # Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Traefik
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.middlewares.nextcloud-caldav.redirectregex.permanent=true"
+      - "traefik.http.middlewares.nextcloud-caldav.redirectregex.regex=^https://(.*)/.well-known/(card|cal)dav"
+      - "traefik.http.middlewares.nextcloud-caldav.redirectregex.replacement=https://$${1}/remote.php/dav/"
+      - "traefik.http.middlewares.nextcloud-header.headers.stsseconds=15552000"
+      - "traefik.http.middlewares.nextcloud-header.headers.stsincludesubdomains=true"
+      - "traefik.http.routers.nextcloud.entrypoints=web"
+      - "traefik.http.routers.nextcloud.rule=Host(`${HOST}`)"
+      - "traefik.http.middlewares.nextcloud-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.nextcloud.middlewares=nextcloud-https-redirect"
+      - "traefik.http.routers.nextcloud-secure.entrypoints=websecure"
+      - "traefik.http.routers.nextcloud-secure.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.nextcloud-secure.tls=true"
+      - "traefik.http.routers.nextcloud-secure.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.nextcloud-secure.middlewares=nextcloud-caldav@docker, nextcloud-header"
+    volumes:
+      - ${LOCAL_NEXTCLOUD_HTML_DIR}:/var/www/html
+      - ${LOCAL_NEXTCLOUD_CONFIG_DIR}:/var/www/html/config
+      - ${LOCAL_NEXTCLOUD_APPS_DIR}:/var/www/html/apps
+
+networks:
+  default:
+    external:
+      name: traefik
