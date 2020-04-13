@@ -4,7 +4,7 @@
 
 To backup your Bitwarden SQLite database an additional container is running. 
 It backups the database and creates an encrypted archive which will be uploaded to the Google Drive. 
-For this a Google Service Account is needed. The following steps explain you to create such an account.
+For this a Google Service Account is needed. The following steps explain how to create such an account.
 
 1. Go to [Google Cloud Platform | Service Accounts](https://console.cloud.google.com/projectselector2/iam-admin/serviceaccounts?supportedpurview=project).
 2. Create a new project e.g. Bitwarden
