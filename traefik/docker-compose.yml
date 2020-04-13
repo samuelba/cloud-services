@@ -36,7 +36,7 @@ services:
       # Dashboard
       - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.rule=Host(`${HOST}`)"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=sam:$$apr1$$vz7sl6jy$$A427TZYnUgiHUhbm8Y37e0"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=sam:$$apr1$$xyz$$xyz"
       - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
       - "traefik.http.routers.traefik-secure.entrypoints=websecure"
