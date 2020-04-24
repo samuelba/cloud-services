@@ -1,5 +1,5 @@
 .idea
 venv
-bitwarden-*.json
+bitwarden.json
 .env
 sync.sh

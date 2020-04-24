@@ -17,7 +17,11 @@ class Drive:
         self.service = build('drive', 'v3', credentials=credentials)
 
     def get_file_list(self):
-        request = self.service.files().list().execute()
+        request = self.service.files().list(pageSize=1000).execute()
+        return request.get('files', [])
+
+    def get_folder_list(self):
+        request = self.service.files().list(q="mimeType='application/vnd.google-apps.folder'").execute()
         return request.get('files', [])
 
     def delete_file(self, file_id):
@@ -63,15 +67,23 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     drive = Drive()
-    files = drive.get_file_list()
+    folders = drive.get_folder_list()
     backup_folder_id = ''
-    for f in files:
+    for f in folders:
         # print(f)
-        if f['mimeType'] == 'application/vnd.google-apps.folder' and f['name'] == 'backup':
+        if f['name'] == 'backup':
             backup_folder_id = f['id']
+            print("Backup folder: ", f)
             break
 
+    if not backup_folder_id:
+        raise(NotADirectoryError, "No folder named backup on Google Drive.")
+
     if args.upload_file:
+        print("File name: ", args.file_name)
+        print("File path: ", args.file_path)
+        if not os.path.isfile(args.file_path):
+            raise(FileExistsError, "File does not exist.")
         drive.upload_file(file_name=args.file_name, file_path=args.file_path, mime_type=args.mime_type,
                           folder_id=backup_folder_id)
 
