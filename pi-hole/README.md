@@ -1,6 +1,6 @@
 # Pi Hole
 
-The web interface is reachable via http://pi-hole.example.com:8053/admin
+The web interface is reachable via https://pi-hole.example.com/admin.
 
 ## Ubuntu as Host
 
