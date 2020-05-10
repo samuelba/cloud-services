@@ -6,6 +6,7 @@ declare -a SERVICES=(
   "portainer"
   "nextcloud"
   "bitwarden"
+  "pi-hole"
 )
 
 for service in "${SERVICES[@]}"; do

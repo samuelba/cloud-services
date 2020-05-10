@@ -1,0 +1,50 @@
+version: '3.3'
+
+services:
+  pihole:
+    restart: unless-stopped
+    image: pihole/pihole:latest
+    container_name: pihole
+    dns:
+      - 127.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '67:67/udp'
+      - '8053:80/tcp'
+    environment:
+      ServerIP: ${SERVER_IP}
+      PROXY_LOCATION: pihole
+      VIRTUAL_HOST: ${HOST}
+      VIRTUAL_PORT: 80
+      TZ: ${TIME_ZONE}
+      WEBPASSWORD: ${WEB_PASSWORD}
+    labels:
+      # Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.entrypoints=web"
+      - "traefik.http.routers.pihole.rule=Host(`${HOST}`)"
+      - "traefik.http.middlewares.pihole-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.pihole-admin.addprefix.prefix=/admin"
+      - "traefik.http.routers.pihole.middlewares=pihole-https-redirect"
+      - "traefik.http.routers.pihole-secure.entrypoints=websecure"
+      - "traefik.http.routers.pihole-secure.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.pihole-secure.tls=true"
+      - "traefik.http.routers.pihole-secure.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.pihole-secure.service=pihole-pihole"
+      - "traefik.http.routers.pihole-secure.middlewares=pihole-admin"
+      - "traefik.http.services.pihole-pihole.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik"
+    volumes:
+      - ${LOCAL_DATA_DIR}/etc-pihole:/etc/pihole
+      - ${LOCAL_DATA_DIR}/etc-dnsmasqd:/etc/dnsmasq.d
+      - ${LOCAL_DATA_DIR}/pihole.log:/var/log/pihole.log
+
+networks:
+  default:
+    external:
+      name: traefik
