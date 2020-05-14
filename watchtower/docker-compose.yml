@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   watchtower:
-    command: --label-enable --cleanup --schedule "0 0 * * *"
+    command: --label-enable --cleanup --schedule "0 0 * * * *"
     image: containrrr/watchtower
     container_name: watchtower
     labels:
