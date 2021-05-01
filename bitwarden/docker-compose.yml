@@ -3,7 +3,7 @@ version: '3.3'
 services:
   bitwarden:
     restart: always
-    image: bitwardenrs/server:latest
+    image: vaultwarden/server:latest
     container_name: bitwarden
     volumes:
       - ${LOCAL_DATA_DIR}:/data
