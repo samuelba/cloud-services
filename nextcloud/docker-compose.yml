@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   nextcloud-mariadb:
-    image: mariadb:latest
+    image: mariadb:10.5
     container_name: nextcloud-mariadb
     restart: always
     environment:
