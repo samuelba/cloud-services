@@ -1,0 +1,58 @@
+[log]
+  level = "INFO"
+
+[providers.docker]
+  exposedByDefault = false
+
+[api]
+  dashboard = true
+  debug = true
+
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+  [entryPoints.websecure]
+    address = ":443"
+  [entryPoints.dashboard]
+    address = ":8080"
+  [entryPoints.metrics]
+    address = ":8082"
+
+[certificatesResolvers.myhttpchallenge.acme]
+    email = "bla@example.com"
+    storage = "/letsencrypt/acme.json"
+    [certificatesResolvers.myhttpchallenge.acme.httpChallenge]
+        entrypoint = "web"
+    #[certificatesResolvers.myhttpchallenge.acme.tlsChallenge]
+
+[http.routers.api]
+  rule = "Host(`traefik.example.com`)"
+  service = "api@internal"
+  middlewares = ["auth"]
+
+[http.middlewares.auth.digestAuth]
+  users = [
+    "sam:traefik:2968ccdaaaa9d303f330a97830cd48e8",
+  ]
+
+# Redirect to https
+[http.middlewares]
+  [http.middlewares.test-redirectscheme.redirectScheme]
+    scheme = "https"
+    permanent = true
+
+[experimental]
+  hub = true
+
+  [experimental.plugins.geoblock]
+    moduleName = "github.com/PascalMinder/geoblock"
+    version = "v0.2.3"
+
+[hub]
+  [hub.tls]
+    insecure = true
+
+[metrics]
+  [metrics.prometheus]
+    entryPoint = "metrics"
+    addRoutersLabels = false

@@ -1,0 +1,62 @@
+version: '3.7'
+
+networks:
+  traefik:
+    external: true
+
+services:
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    restart: always
+    labels:
+      # Watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      # Traefik
+      - "traefik.enable=true"
+      # Dashboard
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.rule=Host(`${HOST}`)"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=username:$$apr1$$xyz$$xyz"
+      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.traefik-secure.entrypoints=websecure"
+      - "traefik.http.routers.traefik-secure.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth, traefik-geoblock"
+      # GeoBlock
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.allowlocalrequests=true"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.allowunknowncountries=false"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.api=https://get.geojs.io/v1/ip/country/{ip}"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.cachesize=32"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.countries=${ALLOWED_COUNTRIES}"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.forcemonthlyupdate=true"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.logallowedrequests=false"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.logapirequests=true"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.loglocalrequests=false"
+      - "traefik.http.middlewares.traefik-geoblock.plugin.geoblock.unknowncountryapiresponse=nil"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${LOCAL_CONF_DIR}/acme.json:/letsencrypt/acme.json
+      - ${LOCAL_DATA_DIR}/tmp:/tmp
+      - ./traefik.toml:/etc/traefik/traefik.toml
+
+  hub-agent:
+    image: ghcr.io/traefik/hub-agent-traefik:v1.0.1
+    container_name: hub-agent
+    restart: always
+    command:
+      - run
+      - --hub.token=${HUB_TOKEN}
+      - --auth-server.advertise-url=http://hub-agent
+      - --traefik.host=traefik
+      - --traefik.tls.insecure=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - traefik

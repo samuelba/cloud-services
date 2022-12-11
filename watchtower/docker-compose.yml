@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+  watchtower:
+    command: --label-enable --cleanup --schedule "0 0 * * * *"
+    image: containrrr/watchtower
+    container_name: watchtower
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    network_mode: none
+    restart: always
+    environment:
+      TZ: "Europe/Zurich"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

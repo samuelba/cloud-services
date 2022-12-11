@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+PASSWORD=$1
+
+DIRECTORY=${PWD}/.
+
+echo "Sync cloud services."
+rsync -av --delete "${DIRECTORY}" user@example.com:/home/user/git/cloud-services \
+  --exclude 'sync.sh' \
+  --exclude '*.sample' \
+  --exclude '.idea' \
+  --exclude '.git' \
+  --exclude 'venv'
