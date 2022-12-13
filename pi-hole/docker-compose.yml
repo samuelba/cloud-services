@@ -13,8 +13,6 @@ services:
       - '53:53/tcp'
       - '53:53/udp'
       - '67:67/udp'
-      # Access the web interface without traefik.
-#      - '8053:9000/tcp'
     environment:
       ServerIP: ${SERVER_IP}
       PROXY_LOCATION: pihole
@@ -30,16 +28,13 @@ services:
       # Traefik
       - "traefik.enable=true"
       - "traefik.docker.network=traefik"
-      - "traefik.http.routers.pihole.entrypoints=web"
+      - "traefik.http.routers.pihole.entrypoints=websecure"
       - "traefik.http.routers.pihole.rule=Host(`${HOST}`)"
-      - "traefik.http.middlewares.pihole-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.pihole.middlewares=pihole-https-redirect"
-      - "traefik.http.routers.pihole-secure.entrypoints=websecure"
-      - "traefik.http.routers.pihole-secure.rule=Host(`${HOST}`)"
-      - "traefik.http.routers.pihole-secure.tls=true"
-      - "traefik.http.routers.pihole-secure.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.pihole-secure.service=pihole-pihole"
-      - "traefik.http.services.pihole-pihole.loadbalancer.server.port=9000"
+      - "traefik.http.routers.pihole.tls=true"
+      - "traefik.http.routers.pihole.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.pihole.middlewares=default@file"
+      - "traefik.http.routers.pihole.service=pihole"
+      - "traefik.http.services.pihole.loadbalancer.server.port=9000"
     volumes:
       - ${LOCAL_DATA_DIR}/etc-pihole:/etc/pihole
       - ${LOCAL_DATA_DIR}/etc-dnsmasqd:/etc/dnsmasq.d

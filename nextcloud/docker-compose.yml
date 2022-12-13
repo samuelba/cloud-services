@@ -55,28 +55,13 @@ services:
       # Traefik
       - "traefik.enable=true"
       - "traefik.docker.network=traefik"
-      - "traefik.http.middlewares.nextcloud-caldav.replacepathregex.regex=^/.well-known/ca(l|rd)dav"
-      - "traefik.http.middlewares.nextcloud-caldav.replacepathregex.replacement=/remote.php/dav/"
-      - "traefik.http.middlewares.nextcloud-header.headers.stsseconds=15552000"
-      - "traefik.http.middlewares.nextcloud-header.headers.stsincludesubdomains=true"
       - "traefik.http.routers.nextcloud.entrypoints=websecure"
       - "traefik.http.routers.nextcloud.rule=Host(`${HOST}`)"
       - "traefik.http.routers.nextcloud.tls=true"
       - "traefik.http.routers.nextcloud.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.nextcloud.middlewares=default@file,nextcloud-caldav@file"
       - "traefik.http.routers.nextcloud.service=nextcloud"
-      - "traefik.http.routers.nextcloud.middlewares=nextcloud-caldav, nextcloud-header, nextcloud-geoblock"
       - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
-      # GeoBlock
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.allowlocalrequests=true"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.allowunknowncountries=false"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.api=https://get.geojs.io/v1/ip/country/{ip}"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.cachesize=32"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.countries=${ALLOWED_COUNTRIES}"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.forcemonthlyupdate=true"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.logallowedrequests=false"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.logapirequests=true"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.loglocalrequests=false"
-      - "traefik.http.middlewares.nextcloud-geoblock.plugin.geoblock.unknowncountryapiresponse=nil"
     volumes:
       - ${LOCAL_NEXTCLOUD_APP_DIR}:/var/www/html
       - ${LOCAL_NEXTCLOUD_DATA_DIR}:/var/www/html/data
