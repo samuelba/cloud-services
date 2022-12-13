@@ -35,18 +35,15 @@ entryPoints:
     http:
       middlewares:
         - crowdsec-bouncer@file
-  dashboard:
-    address: ":8080"
-  metrics:
-    address: ":8082"
 
 certificatesResolvers:
   myhttpchallenge:
     acme:
       email: "user@example.com"
       storage: "/letsencrypt/acme.json"
-      httpChallenge:
-        entryPoint: "web"
+      tlsChallenge: {}
+      # httpChallenge:
+      #   entryPoint: "web"
 
 experimental:
   hub: true
@@ -62,5 +59,4 @@ hub:
 
 metrics:
   prometheus:
-    entryPoint: "metrics"
-    addRoutersLabels: false
+    addRoutersLabels: true
