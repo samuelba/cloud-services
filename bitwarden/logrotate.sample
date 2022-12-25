@@ -1,0 +1,14 @@
+# Insert into '/etc/logrotate.d/vaultwarden'.
+</path/to/vaultwarden>/data/log/vaultwarden.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        dateext
+        dateformat .%Y-%m-%d
+        copytruncate
+        notifempty
+        create 0640 root root
+        sharedscripts
+        endscript
+}

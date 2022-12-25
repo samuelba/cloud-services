@@ -1,0 +1,14 @@
+# Insert into '/etc/logrotate.d/traefik'.
+/var/traefik/log/*.log {
+        daily
+        missingok
+        rotate 30
+        compress
+        dateext
+        dateformat .%Y-%m-%d
+        notifempty
+        create 0640 root root
+        postrotate
+                docker kill --signal="USR1" $(docker ps | grep '\btraefik\b' | awk '{print $1}')
+        endscript
+}
