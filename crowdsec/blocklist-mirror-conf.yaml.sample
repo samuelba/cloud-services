@@ -1,0 +1,33 @@
+# Source: https://hub.docker.com/r/crowdsecurity/blocklist-mirror
+config_version: v1.0
+crowdsec_config:
+  lapi_key: "abc"
+  lapi_url: http://127.0.0.1:8080/
+  update_frequency: 60s
+  include_scenarios_containing: []
+  exclude_scenarios_containing: []
+  only_include_decisions_from: []
+  insecure_skip_verify: false
+
+blocklists:
+  - format: plain_text # Supported formats are either of "plain_text"
+    endpoint: /security/blocklist
+    authentication:
+      type: none # Supported types are either of "none", "ip_based", "basic"
+      user: ""
+      password: ""
+      trusted_ips: # IP ranges, or IPs which don't require auth to access this blocklist
+        - 127.0.0.1
+        - ::1
+
+listen_uri: 0.0.0.0:41412
+tls:
+  cert_file: ""
+  key_file: ""
+
+metrics:
+  enabled: true
+  endpoint: /metrics
+
+log_media: stdout
+log_level: info

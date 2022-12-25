@@ -8,17 +8,21 @@ services:
     hostname: crowdsec
     environment:
       PGID: "1000"
-      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/base-http-scenarios crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/nextcloud"
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/base-http-scenarios crowdsecurity/http-cve crowdsecurity/sshd crowdsecurity/nextcloud Dominic-Wagner/vaultwarden crowdsecurity/whitelist-good-actors"
     networks:
-      - traefik
+      traefik:
+        ipv4_address: 172.29.0.7
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./acquis.yaml:/etc/crowdsec/acquis.yaml
+      - ./mywhitelists.yaml:/etc/crowdsec/parsers/s02-enrich/mywhitelists.yaml
       - ${LOCAL_CROWDSEC_CONFIG_DIR}:/etc/crowdsec
       - ${LOCAL_CROWDSEC_DATA_DIR}:/var/lib/crowdsec/data
-      - /var/log/auth.log:/var/log/auth.log:ro
-      - /var/log/crowdsec:/var/log/crowdsec:ro
-      - ${LOCAL_CROWDSEC_NEXTCLOUD_LOG}:/var/log/nextcloud.log:ro
+      # Logs.
+      - /var/log/:/var/log/:ro
+      - /var/traefik/log/:/var/traefik/log/:ro
+      - ${LOCAL_CROWDSEC_NEXTCLOUD_LOG}:/var/nextcloud/log/nextcloud.log:ro
+      - ${LOCAL_CROWDSEC_VAULTWARDEN_LOG}:/var/vaultwarden/log/vaultwarden.log:ro
     security_opt:
       - no-new-privileges=true
 
@@ -38,7 +42,22 @@ services:
     depends_on:
       - crowdsec
     networks:
-      - traefik
+      traefik:
+        ipv4_address: 172.29.0.8
+
+#  crowdsec-blocklist-mirror:
+#    container_name: crowdsec-blocklist-mirror
+#    image: crowdsecurity/blocklist-mirror
+#    restart: unless-stopped
+#    hostname: crowdsec-blocklist-mirror
+#    ports:
+#      - "41412:41412"
+#    volumes:
+#      - ./blocklist-mirror-conf.yaml:/etc/crowdsec/bouncers/crowdsec-blocklist-mirror.yaml
+#    depends_on:
+#      - crowdsec
+#    networks:
+#      - traefik
 
 networks:
   traefik:

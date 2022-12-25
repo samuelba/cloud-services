@@ -1,0 +1,17 @@
+filenames:
+ - /var/log/auth.log
+ - /var/log/syslog
+labels:
+  type: syslog
+---
+filename: /var/traefik/log/*.log
+labels:
+  type: traefik
+---
+filename: /var/nextcloud/log/nextcloud.log
+labels:
+  type: Nextcloud
+---
+filename: /var/vaultwarden/log/vaultwarden.log
+labels:
+  type: Vaultwarden

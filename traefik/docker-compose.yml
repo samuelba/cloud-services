@@ -34,7 +34,7 @@ services:
       - ${LOCAL_DATA_DIR}/tmp:/tmp
       - ./traefik.yml:/traefik.yml:ro
       - ./dynamic-configuration.yml:/dynamic-configuration.yml:ro
-      - /var/log/crowdsec/traefik:/var/log/traefik
+      - /var/traefik/log:/var/log/traefik
 
   hub-agent:
     image: ghcr.io/traefik/hub-agent-traefik:v1.0.1
